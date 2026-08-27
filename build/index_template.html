@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Grid Interconnection as an Upstream Schedule Constraint in Data Center Delivery: Evidence from U.S. Generation Queues</title>
+<meta name="description" content="Interactive companion to a competing risks analysis of 26,695 United States interconnection requests, 2000 to 2025, with a delivery risk planner for data center and large load projects.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2331597E'/%3E%3Cpath d='M18 4 8 18h6l-2 10L22 13h-6z' fill='%23D81B60'/%3E%3C/svg%3E">
+<style>
+:root{
+  --blue:#31597E; --blue-deep:#1E3A56; --blue-soft:#7E96AC; --blue-mist:#C3CDD8; --blue-wash:#EDF1F5;
+  --green:#57904F; --green-deep:#3B6B35; --purple:#7D4A6E; --red:#7A2E37; --pink:#D81B60;
+  --ink:#23241F; --char:#3A3A3A; --mut:#6B6B66; --silver:#9C9C96; --line:#E4E4DF;
+  --bg:#FBFBF9; --panel:#FFFFFF; --wash:#F4F4F1;
+  --serif:'Charter','Bitstream Charter',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.mast{max-width:1140px;margin:0 auto;padding:44px 20px 20px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:12px}
+.mast h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3.2vw,33px);line-height:1.18;letter-spacing:-.01em;max-width:34ch}
+.mast .subtitle{font-family:var(--serif);font-style:italic;color:var(--char);font-size:clamp(15px,1.9vw,19px);line-height:1.35;margin-top:8px;max-width:56ch}
+.tabbar{position:sticky;top:0;z-index:50;background:rgba(251,251,249,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tabbar-inner{max-width:1140px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:2px}
+.tab{padding:13px 15px 11px;font-size:13.5px;font-weight:600;color:var(--mut);text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:var(--blue-deep);border-bottom-color:var(--blue)}
+.tab:hover{color:var(--ink)}
+.tb-url{margin-left:auto;font-size:12px;color:var(--silver)}
+@media(max-width:560px){.tb-url{display:none}}
+.view{display:none}
+.view.on{display:block}
+.lede{max-width:72ch;font-size:16.5px;color:var(--char)}
+.lede strong{color:var(--blue)}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:26px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-family:var(--serif);font-size:27px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.tile .v.accent{color:var(--blue)}
+.tile .l{font-size:12px;color:var(--mut);margin-top:2px;line-height:1.35}
+.tile .d{font-size:11px;margin-top:6px;color:var(--mut)}
+.section{max-width:1140px;margin:0 auto;padding:40px 20px 8px}
+.section > h2{font-family:var(--serif);font-weight:600;font-size:25px;letter-spacing:-.005em}
+.section-note{margin:10px 0 20px;max-width:76ch;color:var(--char)}
+.section-note b{color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 18px 12px;margin-bottom:18px;scroll-margin-top:64px}
+.panel h3{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.panel .sub{font-size:12px;color:var(--mut);margin-bottom:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:880px){.grid-2{grid-template-columns:1fr}}
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--char);margin:6px 2px 2px}
+.legend .it{display:flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+.sw.line{height:3px;border-radius:2px;width:16px}
+.sw.dot{border-radius:50%}
+.toggle-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.toggle{border:1px solid var(--line);background:var(--panel);color:var(--char);font-size:13px;padding:7px 14px;border-radius:999px;cursor:pointer;font-family:var(--sans)}
+.toggle.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.toggle:hover:not(.active){background:var(--wash)}
+.control-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.control-row label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mut);font-weight:600}
+select{font-family:var(--sans);font-size:14px;color:var(--ink);padding:8px 30px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer}
+input[type=range]{width:190px;accent-color:var(--blue)}
+.tooltip{position:fixed;pointer-events:none;background:#fff;border:1px solid var(--line);box-shadow:0 6px 20px rgba(35,36,31,.13);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--ink);z-index:99;display:none;max-width:260px}
+.tooltip .tt-t{font-weight:600;margin-bottom:4px}
+.tooltip .tt-r{display:flex;justify-content:space-between;gap:14px;color:var(--char)}
+.tooltip .tt-r b{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
+.planner-panel{border-top:3px solid var(--blue)}
+.pl-read{font-size:14.5px;color:var(--char);border-top:1px dashed var(--line);margin-top:8px;padding-top:12px;max-width:none}
+.pl-read b{color:var(--ink)}
+.pl-guide{max-width:80ch;color:var(--char);margin:6px 0 18px}
+.pl-guide b{color:var(--ink)}
+.hl{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:12px;max-width:88ch;scroll-margin-top:64px}
+.hl p{color:var(--char)}
+.hl .no{font-family:var(--serif);font-size:17px;color:var(--blue);font-weight:600;margin-right:9px}
+.hl b{color:var(--ink)}
+.hl a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:2px}
+.m-block{max-width:80ch;margin-bottom:22px;scroll-margin-top:64px}
+.m-block h3{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:5px}
+.m-block p{color:var(--char)}
+.m-block a{color:var(--blue)}
+.about-block{max-width:80ch;color:var(--char)}
+.about-block p{margin-bottom:14px}
+.about-block a{color:var(--blue)}
+.footer{border-top:1px solid var(--line);margin-top:56px}
+.footer-inner{max-width:1140px;margin:0 auto;padding:22px 20px 36px;font-size:12.5px;color:var(--mut)}
+.small{font-size:11.5px;color:var(--mut)}
+.tbl-btn{font-size:11.5px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline;padding:2px}
+.data-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;display:none}
+.data-tbl th,.data-tbl td{border:1px solid var(--line);padding:4px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.data-tbl th:first-child,.data-tbl td:first-child{text-align:left}
+.data-tbl th{background:var(--wash);font-weight:600}
+svg text{font-family:var(--sans)}
+.axis-l{font-size:11px;fill:var(--mut)}
+.axis-s{font-size:9.5px;fill:var(--mut)}
+.axis-d{font-size:10.5px;fill:var(--char);font-weight:600}
+.axis-t{font-size:11px;fill:var(--char)}
+.dir-lab{font-size:11px;font-weight:600}
+.grid-ln{stroke:#ECECE8;stroke-width:1}
+.map-state{stroke:none;cursor:pointer;transition:opacity .12s}
+.map-state:hover{opacity:.82}
+@keyframes flashfade{0%{box-shadow:0 0 0 3px rgba(49,89,126,.5)}100%{box-shadow:0 0 0 3px rgba(49,89,126,0)}}
+.flash{animation:flashfade 1.7s ease-out 1}
+/* ---- interactive pipeline (Method tab) ---- */
+.pp-group{background:var(--wash);border-radius:10px;padding:10px 10px 10px}
+.pp-glabel{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);font-weight:600;text-align:right;margin:0 2px 8px}
+.pp-row{display:grid;gap:10px}
+.pp-c2{grid-template-columns:1fr 1fr}
+.pp-c3{grid-template-columns:1fr 1fr 1fr}
+.pp-col{display:grid;gap:10px;align-content:start}
+.pp-card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px 8px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.pp-card:hover,.pp-card:focus-visible{border-color:var(--blue);box-shadow:0 3px 10px rgba(49,89,126,.14);outline:none}
+.pp-t{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:600;color:var(--ink)}
+.pp-rq{margin-left:auto;flex:0 0 auto;font-size:10px;font-weight:600;color:var(--blue);background:var(--blue-wash);border-radius:999px;padding:1px 7px}
+.pp-d{font-size:11.5px;color:var(--mut);line-height:1.35;margin-top:2px}
+.pp-arrow{text-align:center;color:var(--silver);font-size:13px;line-height:1;margin:7px 0}
+.pp-est{border-width:1.5px;border-color:var(--char);padding:11px 14px 10px}
+.pp-math{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--ink);margin-top:3px}
+@media(max-width:880px){.pp-c2,.pp-c3{grid-template-columns:1fr}.pp-glabel{text-align:left}}
+.skip{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<a class="skip" href="#planner">Skip to risk planner</a>
+
+<header class="mast">
+  <p class="kicker">Interactive research companion &middot; 26,695 requests &middot; 2000 to 2025</p>
+  <h1>Grid Interconnection as an Upstream Schedule Constraint in Data Center Delivery</h1>
+  <p class="subtitle">Evidence from U.S. Generation Queues</p>
+</header>
+
+<nav class="tabbar"><div class="tabbar-inner">
+  <a class="tab active" data-tab="findings" href="#findings">Findings</a>
+  <a class="tab" data-tab="method" href="#method">Method</a>
+  <a class="tab" data-tab="planner" href="#planner">Risk Planner</a>
+  <a class="tab" data-tab="about" href="#about">About</a>
+  <span class="tb-url">dtcenter.electriai.com</span>
+</div></nav>
+
+<main>
+<!-- ================= FINDINGS ================= -->
+<div class="view on" id="view-findings">
+
+<section class="section" style="padding-top:28px">
+  <p class="lede">Grid interconnection, not construction, now sets the schedule for data center delivery.
+    A data center building is erected in about a year, while the median successful grid connection completed
+    in 2025 took <strong>5.6 years</strong> and most requests never connect at all. The findings below
+    summarize 26 years of United States interconnection queues. The Method tab documents the estimation;
+    the Risk Planner evaluates the fitted model for a configuration you choose.</p>
+  <div class="stat-row" id="hero-stats"></div>
+</section>
+
+<section id="sec-map" class="section">
+  <h2>The demand landscape and the state of the queues</h2>
+  <p class="section-note">The map below places the <b>1,477 physical data center facilities</b> of the IM3
+    atlas, sized by floor area, over the median time that active requests in each state have already been
+    waiting. Proximity to concentrated demand confers <b>no completion advantage</b> once region and
+    technology are held fixed: the level of delivery performance is set by regional market membership, and
+    the decline is present everywhere. Hover any state for its queue statistics.</p>
+  <div class="panel" id="p-map">
+    <div class="toggle-row">
+      <button class="toggle active" id="fac-toggle">Facilities: on</button>
+    </div>
+    <div id="ch-map" class="chart"></div>
+    <div class="legend" id="lg-map"></div>
+  </div>
+</section>
+
+<section id="sec-queue" class="section">
+  <h2>The demand shock and the delivery decline</h2>
+  <p class="section-note">The figures below report capacity entering United States queues by technology and
+    the median request-to-operation time among completed projects. Capacity seeking connection nearly
+    <b>tripled after 2020</b> and its mix turned toward natural gas, the firm-power signature of data center
+    load. Over the same period the median time from request to commercial operation rose from 1.4 years for
+    2005 completions to 5.6 years for 2025 completions. An exact least squares segmentation of the duration
+    series dates the most recent shift to <b>2021Q3</b>, before the 2023 demand surge and before FERC Order
+    No. 2023.</p>
+  <div class="grid-2">
+    <div class="panel" id="p-entries"><h3>Capacity entering U.S. queues, by technology</h3>
+      <p class="sub">Gigawatts per entry year &middot; hover for the mix</p>
+      <div id="ch-entries" class="chart"></div><div id="lg-entries" class="legend"></div></div>
+    <div class="panel" id="p-duration"><h3>Median request-to-operation time, completed projects</h3>
+      <p class="sub">By completion year &middot; band = interquartile range &middot; horizontal steps = segment means</p>
+      <div id="ch-duration" class="chart"></div><div id="lg-duration" class="legend"></div></div>
+  </div>
+</section>
+
+<section id="sec-cif" class="section">
+  <h2>Cumulative incidence of completion and withdrawal</h2>
+  <p class="section-note">Every request ends in one of two ways, <b>commercial operation</b> or
+    <b>withdrawal</b>, and either outcome removes the project from the queue, so the chart below estimates
+    the two as competing risks by entry cohort. Five-year completion falls from <b>26.2%</b> for entrants of
+    2000 to 2007 to <b>6.5%</b> for entrants of 2018 to 2020, and the 2021 to 2022 cohort reaches <b>0.6%</b>
+    by year three. Withdrawal is the modal outcome in every cohort. Curves stop where fewer than 100
+    projects remain at risk.</p>
+  <div class="panel" id="p-cif">
+    <div class="toggle-row" id="cif-toggle">
+      <button class="toggle active" data-ev="cod">Commercial operation</button>
+      <button class="toggle" data-ev="wd">Withdrawal</button>
+    </div>
+    <div id="ch-cif" class="chart"></div><div id="lg-cif" class="legend"></div>
+    <button class="tbl-btn" data-tbl="tb-cif">table view</button>
+    <table class="data-tbl" id="tb-cif"></table>
+  </div>
+</section>
+
+<section id="sec-cost" class="section">
+  <h2>Study costs and the withdrawal mechanism</h2>
+  <p class="section-note">Merging interconnection study costs onto the queue identifies the mechanism behind
+    withdrawal. In the left figure, projects allocated <b>top-quartile network upgrade costs withdraw at
+    2.9 times</b> the rate of the cheapest quartile, and only <b>5.7%</b> of them reach operation within
+    three years of the study. The right figure tracks the escalation of the allocated costs themselves.
+    Because the allocation is <b>not observable when the request is filed</b>, abandonment can be
+    diversified with parallel queue positions but it cannot be forecast at entry.</p>
+  <div class="grid-2">
+    <div class="panel" id="p-cost"><h3>Exit hazards by allocated-cost quartile</h3>
+      <p class="sub">vs. cheapest quartile &middot; bars = 95% CI &middot; late-entry Cox, n = 3,247</p>
+      <div id="ch-cost-hr" class="chart"></div><div id="lg-cost" class="legend"></div></div>
+    <div class="panel" id="p-cost-esc"><h3>Median allocated network cost by study year</h3>
+      <p class="sub">2024 $ per kW &middot; six reporting territories</p>
+      <div id="ch-cost-esc" class="chart"></div></div>
+  </div>
+</section>
+
+<section id="sec-highlights" class="section">
+  <h2>Highlights of the findings</h2>
+  <p class="section-note">Six results organize the contribution of the study. Each links to the exhibit,
+    the model, or the source behind it.</p>
+
+  <div class="hl" id="hl-1"><p><span class="no">1</span><b>Entry timing is a quantified schedule risk.</b>
+    Each additional year of later queue entry reduced the completion hazard by
+    <a href="#findings/p-duration">6.7 percent</a>, a single number that summarizes a 25 year deterioration
+    and survives every control, stratification, and imputation test in the paper. It converts a diffuse
+    institutional trend into a figure an owner can put directly into a schedule risk register; the
+    <a href="#method/m-est">estimation framework</a> describes where it comes from.</p></div>
+
+  <div class="hl" id="hl-2"><p><span class="no">2</span><b>Completion has collapsed across entry cohorts.</b>
+    The five-year probability of reaching commercial operation fell from 26.2 percent for entrants of 2000
+    to 2007 to 6.5 percent for 2018 to 2020, and the 2021 to 2022 cohort stands at
+    <a href="#findings/p-cif">0.6 percent by year three</a>. Delivery capability contracted exactly as
+    demand tripled, which is why interconnection, not construction, is now the binding constraint for large
+    load programs. The <a href="#planner">Risk Planner</a> evaluates any specific configuration.</p></div>
+
+  <div class="hl" id="hl-3"><p><span class="no">3</span><b>The slowdown predates the AI demand surge.</b>
+    Exact least squares segmentation places the latest regime shift in completion times at
+    <a href="#findings/p-duration">2021Q3</a>, before the 2023 wave of data center requests and before
+    <a href="https://www.ferc.gov/explainer-interconnection-final-rule" target="_blank" rel="noopener">FERC
+    Order No. 2023</a>. Accounts that attribute current durations to the AI shock therefore mis-date the
+    problem, and evaluations of queue reform need a baseline that was already deteriorating.</p></div>
+
+  <div class="hl" id="hl-4"><p><span class="no">4</span><b>Proximity to demand buys nothing; region buys a
+    lot.</b> Projects sited near the <a href="https://im3.pnnl.gov/" target="_blank" rel="noopener">1,477
+    facilities of the IM3 atlas</a> complete no faster once region and technology are held fixed, while
+    regional membership moves five-year completion from 0.18 in ERCOT to roughly zero in ISO New England.
+    For siting, market membership, not distance to load, is the delivery variable. The
+    <a href="#findings/p-map">map</a> shows both layers together.</p></div>
+
+  <div class="hl" id="hl-5"><p><span class="no">5</span><b>Withdrawal is priced, and priced late.</b>
+    A top-quartile network cost allocation multiplies the withdrawal hazard by
+    <a href="#findings/p-cost">2.88 and cuts the completion hazard to 0.56</a>, and the allocation is
+    revealed only at the study stage, years after filing. Much of what looks like speculative attrition is a
+    rational response to late-arriving prices, which is why the <a href="#method/m-cost">cost
+    identification</a> supports diversifying abandonment risk with parallel queue positions rather than
+    trying to forecast it.</p></div>
+
+  <div class="hl" id="hl-6"><p><span class="no">6</span><b>The queue mix records the procurement
+    strategy.</b> The 2025 entering class totals 513.6 GW, including
+    <a href="#findings/p-entries">151 GW of natural gas</a>, the largest fossil inflow recorded in the
+    <a href="https://emp.lbl.gov/queues" target="_blank" rel="noopener">Berkeley Lab queue data</a>. The
+    turn toward firm power for large loads is visible in the composition of the queue itself, before it
+    appears in any capacity statistic.</p></div>
+</section>
+</div>
+
+<!-- ================= METHOD ================= -->
+<div class="view" id="view-method">
+<section class="section" style="padding-top:28px">
+  <h2>Method</h2>
+  <p class="section-note">This page summarizes the estimation pipeline behind the site. The paper gives the
+    full specification; the supplemental materials report every estimate, and a machine readable planning
+    grid accompanies both.</p>
+
+  <div class="panel" id="p-pipeline">
+    <h3>The estimation pipeline, interactive</h3>
+    <div class="sub">Hover a step for what it does and returns; click it to open the matching exhibit or note. The RQ tags mark which of the three research questions a step answers: RQ1 how likely a request delivers and how that changed, RQ2 what governs the outcomes and through what mechanism, RQ3 how far outcomes are predictable at request.</div>
+    <div class="pp">
+<div class="pp-group"><div class="pp-glabel">Data sources</div><div class="pp-row pp-c2"><div class="pp-card" tabindex="0" role="link" data-title="U.S. interconnection queue" data-tip="Seven ISO/RTO markets and about fifty utilities, roughly 98% of installed U.S. generating capacity (LBNL Queued Up, 2026 edition)." data-link="method/m-data" data-dest="Method · data sources"><div class="pp-t">U.S. interconnection queue</div><div class="pp-d">38,201 generation requests, 2000 to 2025</div></div><div class="pp-card" tabindex="0" role="link" data-title="Auxiliary series" data-tip="State electricity sales (EIA-861), interconnection study costs (LBNL), data center facilities (IM3 atlas), and county boundaries, each joined at the point of use." data-link="method/m-data" data-dest="Method · data sources"><div class="pp-t">Auxiliary series</div><div class="pp-d">costs, facilities, sales, boundaries</div></div></div></div><div class="pp-arrow">↓</div><div class="pp-group"><div class="pp-glabel">Sample construction</div><div class="pp-row pp-c3"><div class="pp-card" tabindex="0" role="link" data-title="Inclusion criteria" data-tip="Generation projects with a dated interconnection request, positive nameplate capacity, and entry year 2000 to 2025." data-link="method/m-sample" data-dest="Method · sample construction"><div class="pp-t">Inclusion criteria</div><div class="pp-d">dated request, positive capacity, entry 2000–2025</div></div><div class="pp-card" tabindex="0" role="link" data-title="Outcome coding" data-tip="Commercial operation (event 1), withdrawal (event 2), or right-censored at 31 December 2025 — the (T, D, X) triple behind every model." data-link="method/m-sample" data-dest="Method · sample construction"><div class="pp-t">Outcome coding</div><div class="pp-d">operation, withdrawal, or censored</div></div><div class="pp-card" tabindex="0" role="link" data-title="Analysis sample" data-tip="2,871 completed, 14,870 withdrawn, and 8,954 still pending at censoring." data-link="method/m-sample" data-dest="Method · sample construction"><div class="pp-t">Analysis sample</div><div class="pp-d">n = 26,695 of 38,201 screened</div></div></div></div><div class="pp-arrow">↓</div><div class="pp-row pp-c3"><div class="pp-group"><div class="pp-glabel">Description</div><div class="pp-col"><div class="pp-card" tabindex="0" role="link" data-title="Queue landscape" data-tip="Annual entry capacity and technology mix, and the exact least-squares change-point test that dates the break in realized durations to 2021Q3." data-link="findings/p-duration" data-dest="Findings · realized durations and their breaks"><div class="pp-t">Queue landscape<span class="pp-rq">RQ1</span></div><div class="pp-d">entry capacity, technology mix, change-point test</div></div><div class="pp-card" tabindex="0" role="link" data-title="Demand linkage" data-tip="State electricity sales against capacity requested and delivered: demand drives what enters the queue, not how fast it exits (Spearman ρ)." data-link="findings/hl-3" data-dest="Findings · highlight 3, the slowdown predates the surge"><div class="pp-t">Demand linkage<span class="pp-rq">RQ2</span></div><div class="pp-d">electricity sales vs capacity requested and delivered</div></div><div class="pp-card" tabindex="0" role="link" data-title="Spatial distribution" data-tip="County-level mapping against the 1,477-facility IM3 atlas; Mann-Whitney rank-sum test on realized durations in data-center-market counties." data-link="findings/p-map" data-dest="Findings · the state map"><div class="pp-t">Spatial distribution<span class="pp-rq">RQ2</span></div><div class="pp-d">facility atlas over county-level queues</div></div></div></div><div class="pp-group"><div class="pp-glabel">Competing-risks estimation</div><div class="pp-col"><div class="pp-card" tabindex="0" role="link" data-title="Cumulative incidence" data-tip="Aalen-Johansen cumulative incidence with commercial operation and withdrawal as competing risks; Gray test across entry cohorts." data-link="findings/p-cif" data-dest="Findings · cumulative-incidence explorer"><div class="pp-t">Cumulative incidence<span class="pp-rq">RQ1</span></div><div class="pp-d">Aalen-Johansen, both exits jointly</div></div><div class="pp-card" tabindex="0" role="link" data-title="Hazard regression" data-tip="Cause-specific proportional hazards for both exits and a log-logistic AFT model — the source of the region, technology, and cohort multipliers." data-link="method/m-est" data-dest="Method · competing risks estimation"><div class="pp-t">Hazard regression<span class="pp-rq">RQ2, RQ3</span></div><div class="pp-d">cause-specific Cox + accelerated failure time</div></div><div class="pp-card" tabindex="0" role="link" data-title="Machine learning" data-tip="Random survival forest and a discrete-time neural competing-risks ensemble, validated strictly out of time; the Risk Planner evaluates this ensemble." data-link="planner" data-dest="the Risk Planner"><div class="pp-t">Machine learning<span class="pp-rq">RQ3</span></div><div class="pp-d">survival forest + deep ensemble, out of time</div></div></div></div><div class="pp-group"><div class="pp-glabel">Mechanism and validation</div><div class="pp-col"><div class="pp-card" tabindex="0" role="link" data-title="Network upgrade cost" data-tip="Allocated network-upgrade cost merged onto the queue by identifier, with delayed entry at the study date; a top-quartile allocation nearly triples the withdrawal hazard." data-link="findings/p-cost" data-dest="Findings · cost-quartile exit hazards"><div class="pp-t">Network upgrade cost<span class="pp-rq">RQ2</span></div><div class="pp-d">allocated study cost, 3,247 projects</div></div><div class="pp-card" tabindex="0" role="link" data-title="Assumption diagnostics" data-tip="Proportional-hazards tests on Schoenfeld residuals with stratified refits where the assumption fails; Fine-Gray subdistribution hazards as the alternative estimator." data-link="method/m-est" data-dest="Method · competing risks estimation"><div class="pp-t">Assumption diagnostics<span class="pp-rq">RQ1-3</span></div><div class="pp-d">Schoenfeld residuals; Fine-Gray</div></div><div class="pp-card" tabindex="0" role="link" data-title="Resampling inference" data-tip="Cluster bootstrap over counties for dependence-robust intervals, plus missing-outcome and specification sensitivity." data-link="method/m-repro" data-dest="Method · reproducibility and scope"><div class="pp-t">Resampling inference<span class="pp-rq">RQ1-3</span></div><div class="pp-d">county cluster bootstrap; sensitivity</div></div></div></div></div><div class="pp-arrow">↓</div><div class="pp-card pp-est" tabindex="0" role="link" data-title="Target estimand" data-link="planner" data-dest="the Risk Planner" data-tip="The cumulative incidence of each competing exit: k = 1 commercial operation, k = 2 withdrawal. The Risk Planner evaluates this quantity for the region, technology, entry year, and capacity you choose."><div class="pp-t">Target estimand</div><div class="pp-math">F<sub>k</sub>(t | x) = Pr(T ≤ t, D = k | X = x)</div><div class="pp-d">the probability that a request has exited by cause k within t years — click to evaluate it for your own project in the Risk Planner</div></div>
+    </div>
+  </div>
+
+
+  <div class="m-block" id="m-data"><h3>Data sources</h3>
+    <p>The core dataset is the Lawrence Berkeley National Laboratory
+    <a href="https://emp.lbl.gov/queues" target="_blank" rel="noopener">Queued Up</a> compilation of
+    interconnection requests, which covers regions responsible for roughly 98 percent of installed United
+    States generating capacity. The analysis joins it with the laboratory's interconnection cost series, the
+    <a href="https://im3.pnnl.gov/" target="_blank" rel="noopener">IM3 Open Source Data Center Atlas</a>
+    from Pacific Northwest National Laboratory, the Census Bureau
+    <a href="https://www.census.gov/construction/c30/c30index.html" target="_blank" rel="noopener">Value of
+    Construction Put in Place</a> series, and
+    <a href="https://www.eia.gov/electricity/data/eia861/" target="_blank" rel="noopener">EIA Form 861</a>
+    sales data.</p></div>
+
+  <div class="m-block" id="m-sample"><h3>Sample construction</h3>
+    <p>From 38,201 raw queue records, sequential exclusions remove duplicate and non-generation entries,
+    records outside the 2000 to 2025 entry window, and records missing the dates that define the outcome.
+    The analysis sample holds 26,695 requests: 2,871 completed, 14,870 withdrawn, and 8,954 still pending at
+    censoring. Sensitivity analyses re-enter the excluded records under three imputation scenarios and
+    reproduce every cohort ordering.</p></div>
+
+  <div class="m-block" id="m-est"><h3>Competing risks estimation</h3>
+    <p>Completion and withdrawal are competing exits from the queue, so the analysis estimates them jointly:
+    Aalen-Johansen cumulative incidence curves, truncated where fewer than 100 projects remain at risk;
+    cause-specific Cox proportional hazards models; Fine-Gray subdistribution hazards; and log-logistic
+    accelerated failure time models, selected over the Weibull form by information criterion. Concordance is
+    0.844 for the completion model and 0.633 for withdrawal, which is itself a finding: what makes projects
+    succeed is far more systematic than what makes them quit.</p></div>
+
+  <div class="m-block" id="m-breaks"><h3>Changepoint segmentation</h3>
+    <p>Regime shifts in the quarterly duration series are located by exact least squares segmentation solved
+    with dynamic programming, which evaluates every admissible break quarter rather than a coarsened search
+    grid. Three breaks are identified, in 2008Q3, 2013Q3, and 2021Q3, and the last of them predates both the
+    2023 demand surge and FERC Order No. 2023.</p></div>
+
+  <div class="m-block" id="m-valid"><h3>Predictive benchmark and temporal validation</h3>
+    <p>The classical models are benchmarked against random survival forests, gradient boosting, and a deep
+    discrete-time competing-risks network in the DeepHit family. Validation is strictly temporal: every
+    model trains on entries through 2017 and is scored on entries from 2018 onward, so no model sees the
+    future it predicts. A ten-seed ensemble of the selected architecture reaches a time-dependent
+    concordance of 0.813 (90 percent interval 0.796 to 0.828) for completion and 0.599 for withdrawal. The
+    Risk Planner on this site evaluates that ensemble refitted on all 26,695 requests.</p></div>
+
+  <div class="m-block" id="m-cost"><h3>Cost mechanism identification</h3>
+    <p>Project-level interconnection study costs from six reporting territories are merged onto the queue
+    (3,247 late-entry requests) and enter cause-specific Cox models as allocated cost quartiles. A
+    top-quartile allocation multiplies the withdrawal hazard by 2.88 (95 percent interval 2.50 to 3.32) and
+    the completion hazard by 0.56 (0.43 to 0.73), identifying late-revealed network upgrade costs as a
+    central mechanism behind abandonment.</p></div>
+
+  <div class="m-block" id="m-repro"><h3>Reproducibility and scope</h3>
+    <p>Analysis code, derived data, and the 1,350-row planning grid behind the Risk Planner accompany the
+    paper. All estimates describe generation interconnection between 2000 and 2025; dedicated large-load
+    interconnection processes for data centers are newer and may differ. Estimates are research outputs
+    provided for planning context only.</p></div>
+</section>
+</div>
+
+<!-- ================= RISK PLANNER ================= -->
+<div class="view" id="view-planner">
+<section class="section" style="padding-top:28px">
+  <h2>Delivery-risk planner</h2>
+  <p class="section-note">The planner evaluates the deep competing-risks ensemble described in the
+    <a href="#method/m-valid" style="color:var(--blue)">Method</a> page at a configuration you choose:
+    market region, technology, entry year, and capacity class. Solid curves are ensemble means, shaded bands
+    are 90 percent ensemble intervals, and the grey dashed curve is the competing probability of withdrawal.
+    The right panel re-evaluates the same project in all nine regions.</p>
+  <div class="panel planner-panel" id="p-planner">
+    <div class="control-row">
+      <label>Region<select id="pl-region"></select></label>
+      <label>Technology<select id="pl-tech"></select></label>
+      <label>Entry year<select id="pl-year"></select></label>
+      <label>Capacity <span id="pl-mw-val" style="color:var(--blue)">100-300 MW</span>
+        <input type="range" id="pl-mw" min="0" max="4" step="1" value="2"></label>
+    </div>
+    <div class="stat-row" id="pl-stats" style="margin-top:4px"></div>
+    <div class="grid-2" style="margin-top:16px">
+      <div><h3 style="font-size:13px">Probability of holding power</h3>
+        <p class="sub">solid = ensemble mean &middot; band = 90% interval &middot; grey = withdrawal</p>
+        <div id="ch-pl-curve" class="chart"></div></div>
+      <div><h3 style="font-size:13px">Same project, every region</h3>
+        <p class="sub">P(commercial operation within 5 years) &middot; &#9650; = your pick</p>
+        <div id="ch-pl-compare" class="chart"></div></div>
+    </div>
+    <p class="pl-read" id="pl-read"></p>
+  </div>
+  <h3 style="font-family:var(--serif);font-size:17px;margin-bottom:5px">Applying the estimates</h3>
+  <p class="pl-guide">For schedule construction the paper reduces to a set of multipliers on a mid-2010s
+    baseline: about <b>2.1&times;</b> on expected time in queue for entry in 2021 to 2022, about
+    <b>1.25&times;</b> per unit of log capacity, more than <b>5&times;</b> for ISO New England and
+    <b>0.63&times;</b> for ERCOT relative to MISO. Screening the region and technology surface for
+    combinations that have historically delivered, and holding <b>parallel queue positions</b>, addresses
+    the two distinct risks the analysis separates: delay, which can be estimated, and abandonment, which
+    cannot be forecast at entry.</p>
+  <p class="small" style="max-width:80ch">Estimates describe generation interconnection under 2000 to 2025
+    conditions and are provided as decision support, not as a guarantee of outcomes.</p>
+</section>
+</div>
+
+<!-- ================= ABOUT ================= -->
+<div class="view" id="view-about">
+<section class="section" style="padding-top:28px">
+  <h2 style="font-family:var(--serif);font-weight:600;font-size:25px;margin-bottom:14px">About</h2>
+  <div class="about-block">
+  <p>This site is the interactive companion to <i>Grid Interconnection as an Upstream Schedule Constraint in Data Center Delivery: Evidence from U.S. Generation Queues</i>,
+    a manuscript currently under anonymized peer review. Author and contact information will be added when
+    the review concludes.</p>
+  <p><b>Data.</b> Lawrence Berkeley National Laboratory
+    <a href="https://emp.lbl.gov/queues" target="_blank" rel="noopener">Queued Up</a> (2026) and
+    interconnection cost series; <a href="https://im3.pnnl.gov/" target="_blank" rel="noopener">IM3 Open
+    Source Data Center Atlas</a> (PNNL); United States Census Bureau
+    <a href="https://www.census.gov/construction/c30/c30index.html" target="_blank" rel="noopener">Value of
+    Construction Put in Place</a>; <a href="https://www.eia.gov/electricity/data/eia861/" target="_blank"
+    rel="noopener">EIA Form 861</a>.</p>
+  <p><b>Scope.</b> Estimates are research outputs provided for planning context only. They describe
+    generation interconnection between 2000 and 2025; dedicated large-load interconnection processes are
+    newer and may differ. Nothing on this site is engineering, legal, or investment advice.</p>
+  <p class="small">dtcenter.electriai.com</p>
+  </div>
+</section>
+</div>
+</main>
+
+<footer class="footer"><div class="footer-inner">
+  <p>dtcenter.electriai.com &middot; research companion site &middot; estimates for planning context only</p>
+</div></footer>
+
+<div class="tooltip" id="tt"></div>
+<script id="app-data" type="application/json">__DATA__</script>
+<script>
+'use strict';
+const DATA = JSON.parse(document.getElementById('app-data').textContent);
+const PAL = {blue:'#31597E', green:'#57904F', purple:'#7D4A6E', red:'#7A2E37', pink:'#D81B60', char:'#3A3A3A',
+             silver:'#9C9C96', mist:'#C9C9C4', grey:'#DBDBD6', ink:'#23241F', mut:'#6B6B66'};
+const TECH_C = {Solar:PAL.green, Battery:PAL.silver, Hybrid:PAL.mist, Wind:PAL.purple,
+                Gas:PAL.blue, Nuclear:PAL.char, Other:'#E3E3DE'};
+const COH_C = {'2000-07':'#DBDBD6','2008-13':'#C9C9C4','2014-17':'#9C9C96',
+               '2018-20':'#3A3A3A','2021-22':'#31597E','2023-25':'#57904F'};
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a, parent) => { const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; };
+const fmt = (v, d=2) => (+v).toFixed(d);
+const pct = v => (v*100).toFixed(v*100 >= 10 ? 0 : 1) + '%';
+const TT = document.getElementById('tt');
+function showTT(html, x, y){ TT.innerHTML = html; TT.style.display='block';
+  const w = TT.offsetWidth, h = TT.offsetHeight;
+  TT.style.left = Math.min(x+14, innerWidth-w-8)+'px';
+  TT.style.top = (y-h-12 < 8 ? y+16 : y-h-12)+'px'; }
+function hideTT(){ TT.style.display='none'; }
+
+// ---------- generic chart scaffold ----------
+function scaffold(sel, W, H, m){
+  const host = document.querySelector(sel); host.innerHTML='';
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img'}, host);
+  const iw = W-m.l-m.r, ih = H-m.t-m.b;
+  const g = el('g', {transform:`translate(${m.l},${m.t})`}, svg);
+  return {svg, g, iw, ih, host};
+}
+function linScale(d0, d1, r0, r1){ const f = v => r0 + (v-d0)/(d1-d0||1)*(r1-r0); f.inv = v => d0 + (v-r0)/(r1-r0||1)*(d1-d0); return f; }
+function yAxis(g, sc, iw, ticks, fmt_, unit){
+  ticks.forEach(t => { const y = sc(t);
+    el('line', {x1:0, x2:iw, y1:y, y2:y, class:'grid-ln'}, g);
+    el('text', {x:-8, y:y+3.5, 'text-anchor':'end', class:'axis-l'}, g).textContent = fmt_ ? fmt_(t) : t; });
+  if (unit) el('text', {x:-8, y:-9, 'text-anchor':'end', class:'axis-l'}, g).textContent = unit;
+}
+function xAxis(g, sc, ih, ticks, fmt_){
+  ticks.forEach(t => el('text', {x:sc(t), y:ih+18, 'text-anchor':'middle', class:'axis-l'}, g).textContent = fmt_ ? fmt_(t) : t);
+}
+function xYears(g, sc, ih, y0, y1){ // every year: decade anchors full, others two-digit
+  for (let yr = y0; yr <= y1; yr++){
+    const anchor = yr % 5 === 0;
+    el('text', {x:sc(yr), y:ih+17, 'text-anchor':'middle', class:anchor?'axis-d':'axis-s'}, g)
+      .textContent = anchor ? yr : String(yr).slice(2);
+  }
+}
+function legend(sel, items){ const host = document.querySelector(sel); if(!host) return; host.innerHTML =
+  items.map(([c, t, kind]) => `<span class="it"><span class="sw ${kind==='line'?'line':kind==='dot'?'dot':''}" style="background:${c}"></span>${t}</span>`).join(''); }
+
+// ---------- tab router ----------
+const TABS = ['findings','method','planner','about'];
+const VIEWS = {}; TABS.forEach(t => VIEWS[t] = document.getElementById('view-'+t));
+const TABBTNS = document.querySelectorAll('.tab');
+function route(){
+  const raw = (location.hash||'').replace(/^#\/?/, '');
+  const parts = raw.split('/');
+  const tab = TABS.includes(parts[0]) ? parts[0] : 'findings';
+  const anchor = parts[1];
+  TABS.forEach(t => VIEWS[t].classList.toggle('on', t === tab));
+  TABBTNS.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (anchor){
+    const target = document.getElementById(anchor);
+    if (target) requestAnimationFrame(() => {
+      target.scrollIntoView({behavior:'smooth', block:'start'});
+      target.classList.remove('flash'); void target.offsetWidth; target.classList.add('flash');
+    });
+  } else window.scrollTo(0, 0);
+}
+addEventListener('hashchange', route);
+
+// ---------- hero ----------
+(function(){
+  const h = DATA.headline;
+  const tiles = [
+    [h.n.toLocaleString(), 'interconnection requests analyzed', '2000 to 2025 · 7 ISOs and about 50 utilities'],
+    [h.medDur2025 + ' yr', 'median request to operation, 2025 completions', 'was ' + h.medDur2005 + ' yr for 2005 completions'],
+    [(h.p5_1820*100).toFixed(1) + '%', 'five-year completion, entrants 2018 to 2020', 'was ' + (h.p5_0007*100).toFixed(1) + '% for 2000 to 2007'],
+    ['-' + h.perYear + '%/yr', 'completion hazard per year of later entry', 'accelerated failure time estimate'],
+    [h.q4hr + '×', 'withdrawal hazard, top vs bottom cost quartile', 'revealed only at the study stage'],
+  ];
+  document.getElementById('hero-stats').innerHTML = tiles.map(([v,l,d],i) =>
+    `<div class="tile"><div class="v ${i<2?'accent':''}">${v}</div><div class="l">${l}</div><div class="d">${d}</div></div>`).join('');
+})();
+
+// ---------- entries stacked bars ----------
+(function(){
+  const E = DATA.entries, years = E.years, order = ['Solar','Battery','Hybrid','Wind','Gas','Nuclear','Other'];
+  const totals = years.map((_,i) => order.reduce((s,t)=> s + (E.series[t]?E.series[t][i]:0), 0));
+  const {g, iw, ih} = scaffold('#ch-entries', 520, 306, {l:44, t:26, r:8, b:28});
+  const x = linScale(2009.4, 2025.6, 0, iw), y = linScale(0, 600, ih, 0);
+  yAxis(g, y, iw, [0,150,300,450,600], v=>v, 'GW');
+  xYears(g, x, ih, years[0], years[years.length-1]);
+  const bw = (x(2011)-x(2010))*0.72;
+  years.forEach((yr,i) => {
+    let acc = 0;
+    order.forEach(t => { const v = E.series[t]?E.series[t][i]:0; if(v<=0) return;
+      el('rect', {x:x(yr)-bw/2, y:y(acc+v), width:bw, height:Math.max(0,y(acc)-y(acc+v)-0.6),
+        fill:TECH_C[t], rx:1}, g);
+      acc += v;
+    });
+    const hit = el('rect', {x:x(yr)-bw/2-1, y:0, width:bw+2, height:ih, fill:'transparent'}, g);
+    hit.addEventListener('mousemove', ev => { const rows = order.filter(t=>E.series[t]&&E.series[t][i]>0)
+        .map(t=>`<div class="tt-r"><span><span class="sw" style="background:${TECH_C[t]};display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px"></span>${t}</span><b>${E.series[t][i].toFixed(1)} GW</b></div>`).join('');
+      showTT(`<div class="tt-t">${yr} · ${totals[i].toFixed(0)} GW total</div>${rows}`, ev.clientX, ev.clientY); });
+    hit.addEventListener('mouseleave', hideTT);
+  });
+  legend('#lg-entries', order.map(t=>[TECH_C[t], t]));
+})();
+
+// ---------- duration chart ----------
+(function(){
+  const Dd = DATA.duration;
+  const {g, iw, ih} = scaffold('#ch-duration', 520, 306, {l:40, t:26, r:52, b:28});
+  const x = linScale(2004.5, 2025.9, 0, iw), y = linScale(0, 8, ih, 0);
+  yAxis(g, y, iw, [0,2,4,6,8], v=>v, 'years');
+  xYears(g, x, ih, Dd.years[0], Dd.years[Dd.years.length-1]);
+  // IQR band
+  let p = Dd.years.map((yr,i)=>`${x(yr)},${y(Dd.q75[i])}`).join(' L');
+  p = 'M'+p + ' L' + Dd.years.slice().reverse().map((yr)=>{const i=Dd.years.indexOf(yr);return `${x(yr)},${y(Dd.q25[i])}`;}).join(' L') + 'Z';
+  el('path', {d:p, fill:PAL.grey, opacity:.45}, g);
+  // structural breaks: dashed verticals, labels in the top margin strip
+  Dd.breaks.forEach(b => { const yr = +b.slice(0,4) + (+b.slice(5)-1)/4 + 0.25;
+    el('line', {x1:x(yr), x2:x(yr), y1:0, y2:ih, stroke:PAL.blue, 'stroke-dasharray':'2 3', 'stroke-width':1, opacity:.75}, g);
+    el('text', {x:x(yr), y:-9, 'text-anchor':'middle', class:'axis-l', fill:PAL.blue}, g).textContent = b; });
+  // segment means
+  Dd.segments.forEach(s => {
+    el('line', {x1:x(s.x0), x2:x(s.x1), y1:y(s.mean), y2:y(s.mean), stroke:PAL.blue, 'stroke-width':2, opacity:.9}, g);
+  });
+  // median line
+  el('path', {d:'M'+Dd.years.map((yr,i)=>`${x(yr)},${y(Dd.median[i])}`).join(' L'),
+    fill:'none', stroke:PAL.char, 'stroke-width':2.3, 'stroke-linejoin':'round'}, g);
+  el('text', {x:x(2025)+6, y:y(Dd.median[Dd.years.length-1])+4, class:'dir-lab', fill:PAL.char}, g).textContent = Dd.median[Dd.years.length-1].toFixed(1)+' yr';
+  // hover
+  const hit = el('rect', {x:0, y:0, width:iw, height:ih, fill:'transparent'}, g);
+  hit.addEventListener('mousemove', ev => {
+    const r = hit.getBoundingClientRect(); const yr = Math.round(x.inv((ev.clientX-r.left)*(iw/r.width)));
+    const i = Dd.years.indexOf(yr); if(i<0){hideTT();return;}
+    showTT(`<div class="tt-t">Completed in ${yr}</div>
+      <div class="tt-r"><span>Median</span><b>${Dd.median[i]} yr</b></div>
+      <div class="tt-r"><span>IQR</span><b>${Dd.q25[i]} to ${Dd.q75[i]} yr</b></div>
+      <div class="tt-r"><span>Completions</span><b>${Dd.n[i].toLocaleString()}</b></div>`, ev.clientX, ev.clientY);
+  });
+  hit.addEventListener('mouseleave', hideTT);
+  const segTxt = Dd.segments.map(s=>s.mean.toFixed(1)).join(' → ');
+  legend('#lg-duration', [[PAL.char,'annual median','line'],[PAL.grey,'interquartile range'],
+    [PAL.blue,'segment means '+segTxt+' yr (breaks '+Dd.breaks.join(', ')+')','line']]);
+})();
+
+// ---------- CIF explorer ----------
+(function(){
+  const cohorts = Object.keys(DATA.cif);
+  let ev = 'cod';
+  function draw(){
+    const ymax = ev==='cod' ? 0.36 : 0.88;
+    const {g, iw, ih} = scaffold('#ch-cif', 900, 360, {l:46, t:12, r:110, b:30});
+    const x = linScale(0, 10, 0, iw), y = linScale(0, ymax, ih, 0);
+    yAxis(g, y, iw, ev==='cod'?[0,.1,.2,.3]:[0,.2,.4,.6,.8], v=>(v*100)+'%', '');
+    el('text', {x:2, y:-2, class:'axis-l'}, g).textContent='cumulative incidence';
+    xAxis(g, x, ih, [0,2,4,6,8,10], v=>v);
+    el('text',{x:x(5), y:ih+18, 'text-anchor':'middle', class:'axis-l'},g);
+    el('line', {x1:x(5), x2:x(5), y1:0, y2:ih, stroke:PAL.grey, 'stroke-width':1}, g);
+    el('text', {x:x(5), y:12, 'text-anchor':'middle', class:'axis-l'}, g).textContent='5-year mark';
+    cohorts.forEach(c => {
+      const pts = DATA.cif[c][ev];
+      const d0 = 'M'+pts.map(p=>`${x(p[0])},${y(Math.min(p[1],ymax))}`).join(' L');
+      const path = el('path', {d:d0, fill:'none', stroke:COH_C[c], 'stroke-width':2.4, 'stroke-linejoin':'round'}, g);
+      const last = pts[pts.length-1];
+      el('circle', {cx:x(last[0]), cy:y(Math.min(last[1],ymax)), r:3.4, fill:COH_C[c], stroke:'#fff', 'stroke-width':1}, g);
+      const dy = (ev==='cod' && c==='2023-25') ? 13 : 4;
+      el('text', {x:x(last[0])+7, y:y(Math.min(last[1],ymax))+dy, class:'dir-lab', fill:COH_C[c]==='#DBDBD6'?'#8b8b86':COH_C[c]}, g)
+        .textContent = c + ' · ' + pct(last[1]);
+      path.addEventListener('mousemove', e2 => {
+        const r = path.ownerSVGElement.getBoundingClientRect();
+        const xv = x.inv((e2.clientX-r.left)*(900/r.width)-46);
+        let best = pts[0]; for(const p of pts){ if(p[0]<=xv) best=p; }
+        showTT(`<div class="tt-t">Entered ${c}</div>
+          <div class="tt-r"><span>${ev==='cod'?'P(operating)':'P(withdrawn)'} by ${best[0].toFixed(1)} yr</span><b>${pct(best[1])}</b></div>
+          <div class="tt-r"><span>Cohort size</span><b>${DATA.cif[c].n.toLocaleString()}</b></div>`, e2.clientX, e2.clientY);
+      });
+      path.addEventListener('mouseleave', hideTT);
+    });
+    legend('#lg-cif', cohorts.map(c=>[COH_C[c], c, 'line']));
+    // table view
+    const tb = document.getElementById('tb-cif');
+    const hz = [2,3,5,8];
+    tb.innerHTML = '<tr><th>Cohort</th><th>n</th>'+hz.map(h=>`<th>${ev==='cod'?'P(COD)':'P(WD)'} ${h}y</th>`).join('')+'</tr>' +
+      cohorts.map(c => { const pts = DATA.cif[c][ev]; const hmax = DATA.cif[c].hmax;
+        return `<tr><td>${c}</td><td>${DATA.cif[c].n.toLocaleString()}</td>` + hz.map(h => {
+          if (h > hmax) return '<td>n.e.</td>';
+          let best=pts[0]; for(const p of pts){ if(p[0]<=h) best=p; }
+          return `<td>${(best[1]).toFixed(3)}</td>`; }).join('') + '</tr>'; }).join('');
+  }
+  document.getElementById('cif-toggle').addEventListener('click', e => {
+    if(!e.target.dataset.ev) return;
+    document.querySelectorAll('#cif-toggle .toggle').forEach(b=>b.classList.toggle('active', b===e.target));
+    ev = e.target.dataset.ev; draw();
+  });
+  draw();
+})();
+
+// ---------- map ----------
+(function(){
+  const S = DATA.states;
+  const wmin = 1.5, wmax = 5.2;
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  function ramp(t){ // #F2F2EF -> #C3CDD8 -> #7E96AC -> #31597E -> #1E3A56
+    const stops = [[242,242,239],[195,205,216],[126,150,172],[49,89,126],[30,58,86]];
+    const x = Math.max(0, Math.min(1, t))*(stops.length-1);
+    const i = Math.min(stops.length-2, Math.floor(x)), f = x-i;
+    return `rgb(${stops[i].map((c,k)=>Math.round(lerp(c,stops[i+1][k],f))).join(',')})`;
+  }
+  const host = document.querySelector('#ch-map'); host.innerHTML='';
+  const svg = el('svg', {viewBox:'0 0 960 640'}, host);
+  const g = el('g', {}, svg);
+  for (const st in DATA.mapStates){
+    const w = S[st] ? S[st].wait : null;
+    const fill = w==null ? '#EDEDEA' : ramp((Math.min(Math.max(w,wmin),wmax)-wmin)/(wmax-wmin));
+    const p = el('path', {d:DATA.mapStates[st], fill, class:'map-state', 'fill-rule':'evenodd'}, g);
+    p.addEventListener('mousemove', ev2 => { const s = S[st]||{};
+      showTT(`<div class="tt-t">${st}</div>
+        ${s.wait!=null?`<div class="tt-r"><span>Median wait (active)</span><b>${s.wait} yr</b></div>`:'<div class="tt-r"><span>Fewer than 30 active projects</span></div>'}
+        ${s.gw!=null?`<div class="tt-r"><span>Capacity pending</span><b>${s.gw} GW</b></div>`:''}
+        ${s.n!=null?`<div class="tt-r"><span>Active requests</span><b>${s.n.toLocaleString()}</b></div>`:''}
+        ${s.medDur!=null?`<div class="tt-r"><span>Median realized duration</span><b>${s.medDur} yr</b></div>`:''}`, ev2.clientX, ev2.clientY); });
+    p.addEventListener('mouseleave', hideTT);
+  }
+  DATA.mapBorders.forEach(d0 => el('path', {d:d0, fill:'none', stroke:'#fff', 'stroke-width':1.1, 'pointer-events':'none'}, g));
+  const fg = el('g', {'pointer-events':'none'}, svg);
+  DATA.facilities.forEach(([x,y,r]) => el('circle', {cx:x, cy:y, r:(r*1.6+0.6).toFixed(1), fill:PAL.pink,
+    opacity:.58, stroke:'#fff', 'stroke-width':.8}, fg));
+  // colorbar
+  const cb = el('g', {transform:'translate(700,600)'}, svg);
+  for(let i=0;i<120;i++) el('rect',{x:i*1.5,y:0,width:1.6,height:9,fill:ramp(i/119)},cb);
+  el('text',{x:0,y:24,class:'axis-l'},cb).textContent=wmin+' yr';
+  el('text',{x:180,y:24,'text-anchor':'end',class:'axis-l'},cb).textContent=wmax+'+ yr';
+  el('text',{x:-8,y:8,'text-anchor':'end',class:'axis-l'},cb).textContent='median wait:';
+  const btn = document.getElementById('fac-toggle');
+  btn.addEventListener('click', () => { const on = fg.style.display!=='none';
+    fg.style.display = on?'none':''; btn.textContent = 'Facilities: '+(on?'off':'on'); btn.classList.toggle('active', !on); });
+  legend('#lg-map', [[PAL.pink,'data center facility (sized by floor area)','dot'],['#EDEDEA','fewer than 30 active projects']]);
+})();
+
+// ---------- cost ----------
+(function(){
+  const Q = DATA.cost.quartiles;
+  const {g, iw, ih} = scaffold('#ch-cost-hr', 520, 250, {l:70, t:16, r:20, b:30});
+  const x = linScale(0.3, 3.6, 0, iw);
+  [0.5,1,2,3].forEach(t=>{ el('line',{x1:x(t),x2:x(t),y1:0,y2:ih,class:'grid-ln'},g);
+    el('text',{x:x(t),y:ih+18,'text-anchor':'middle',class:'axis-l'},g).textContent=t+'×'; });
+  el('line', {x1:x(1), x2:x(1), y1:0, y2:ih, stroke:PAL.mut, 'stroke-dasharray':'3 3'}, g);
+  Q.forEach((q,i) => {
+    const y0 = 26 + i*(ih-40)/2;
+    el('text', {x:-8, y:y0+4, 'text-anchor':'end', class:'axis-t'}, g).textContent = q.q;
+    [[q.wd, PAL.red, -7, 'withdrawal'], [q.cod, PAL.green, 9, 'completion']].forEach(([v, c, dy, lab]) => {
+      el('line', {x1:x(v[1]), x2:x(v[2]), y1:y0+dy, y2:y0+dy, stroke:c, 'stroke-width':2, 'stroke-linecap':'round'}, g);
+      const dot = el('circle', {cx:x(v[0]), cy:y0+dy, r:4.4, fill:c, stroke:'#fff','stroke-width':1}, g);
+      el('text', {x:x(v[2])+6, y:y0+dy+3.6, class:'axis-l', fill:c}, g).textContent = fmt(v[0]);
+      dot.addEventListener('mousemove', e2 => showTT(`<div class="tt-t">${q.q} · ${lab}</div>
+        <div class="tt-r"><span>Hazard ratio</span><b>${fmt(v[0])}</b></div>
+        <div class="tt-r"><span>95% CI</span><b>${fmt(v[1])} to ${fmt(v[2])}</b></div>`, e2.clientX, e2.clientY));
+      dot.addEventListener('mouseleave', hideTT);
+    });
+  });
+  legend('#lg-cost', [[PAL.red,'withdrawal'],[PAL.green,'completion']]);
+
+  const E2 = DATA.cost.escalation;
+  const s2 = scaffold('#ch-cost-esc', 520, 256, {l:46, t:22, r:16, b:30});
+  const x2 = linScale(2004.5, 2024.5, 0, s2.iw), y2 = linScale(0, 60, s2.ih, 0);
+  yAxis(s2.g, y2, s2.iw, [0,20,40,60], v=>'$'+v, '$/kW');
+  xAxis(s2.g, x2, s2.ih, [2005,2010,2015,2020,2024]);
+  const byr = 2021.75;
+  el('line', {x1:x2(byr), x2:x2(byr), y1:0, y2:s2.ih, stroke:PAL.blue, 'stroke-dasharray':'2 3'}, s2.g);
+  el('text', {x:x2(byr)-4, y:14, 'text-anchor':'end', class:'axis-l', fill:PAL.blue}, s2.g).textContent='2021Q3 duration break';
+  el('path', {d:'M'+E2.years.map((yr,i)=>`${x2(yr)},${y2(E2.med[i])}`).join(' L'), fill:'none',
+    stroke:PAL.char, 'stroke-width':2.2, 'stroke-linejoin':'round'}, s2.g);
+  E2.years.forEach((yr,i) => { const c = el('circle', {cx:x2(yr), cy:y2(E2.med[i]), r:3, fill:'#fff',
+      stroke:PAL.char, 'stroke-width':1.4}, s2.g);
+    c.addEventListener('mousemove', e2 => showTT(`<div class="tt-t">Studies in ${yr}</div>
+      <div class="tt-r"><span>Median network cost</span><b>$${E2.med[i]}/kW</b></div>`, e2.clientX, e2.clientY));
+    c.addEventListener('mouseleave', hideTT); });
+})();
+
+// ---------- planner ----------
+(function(){
+  const P2 = DATA.planner;
+  const b64 = s => { const bin = atob(s); const a = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return a; };
+  const M1 = b64(P2.mean1), L1 = b64(P2.lo1), H1 = b64(P2.hi1), M2 = b64(P2.mean2);
+  const K = P2.K;
+  const rowIdx = {}; P2.rows.forEach((r,i)=>rowIdx[r]=i);
+  const key = (rg,tc,yr,sz) => `${rg}|${tc}|${yr}|${sz}`;
+  const curve = (A2,i) => Array.from(A2.slice(i*K,(i+1)*K), v=>v/250);
+  const at = (arr, h) => { const c = P2.cuts; let v = arr[0];
+    for(let i=0;i<c.length;i++){ if(c[i]<=h) v=arr[i]; } return v; };
+
+  const selR = document.getElementById('pl-region'), selT = document.getElementById('pl-tech'),
+        selY = document.getElementById('pl-year'), rng = document.getElementById('pl-mw');
+  P2.regions.forEach(r=>selR.add(new Option(r,r)));
+  P2.techs.forEach(t=>selT.add(new Option(t,t)));
+  P2.years.forEach(y=>selY.add(new Option(y,y)));
+  selR.value='ERCOT'; selT.value='Gas'; selY.value='2024'; rng.value=2;
+
+  function draw(){
+    const rg=selR.value, tc=selT.value, yr=+selY.value, si=+rng.value, sz=P2.sizes[si];
+    document.getElementById('pl-mw-val').textContent = sz;
+    const i = rowIdx[key(rg,tc,yr,sz)];
+    const m = curve(M1,i), lo = curve(L1,i), hi = curve(H1,i), wd = curve(M2,i);
+    const p3=at(m,3), p5=at(m,5), p7=at(m,7), p5lo=at(lo,5), p5hi=at(hi,5), w5=at(wd,5);
+    const hist = DATA.history5y[`${rg}|${tc}`];
+    // stat tiles
+    const tiles = [
+      [pct(p3), 'operating within 3 years', ''],
+      [pct(p5), 'operating within 5 years', `90% band ${pct(p5lo)} to ${pct(p5hi)}`],
+      [pct(p7), 'operating within 7 years', ''],
+      [pct(w5), 'withdrawn within 5 years', 'most projects exit this way'],
+      [hist!=null ? pct(hist) : 'n/a', 'historical 5-yr rate, this region and tech', hist!=null?'entries 2010 to 2018':'insufficient history'],
+    ];
+    document.getElementById('pl-stats').innerHTML = tiles.map(([v,l,d],ix) =>
+      `<div class="tile"><div class="v ${ix===1?'accent':''}">${v}</div><div class="l">${l}</div><div class="d">${d}</div></div>`).join('');
+    // curve chart
+    const {g, iw, ih} = scaffold('#ch-pl-curve', 520, 290, {l:46, t:12, r:14, b:30});
+    const ymaxRaw = Math.max(0.3, Math.min(1, Math.max(...hi, ...wd)*1.12));
+    const step = ymaxRaw > 0.6 ? 0.25 : (ymaxRaw > 0.3 ? 0.2 : 0.1);
+    const ymax = Math.ceil(ymaxRaw/step)*step;
+    const x = linScale(0, 10, 0, iw), y = linScale(0, ymax, ih, 0);
+    const yts = []; for(let v=0; v<=ymax+1e-9; v+=step) yts.push(Math.round(v*100)/100);
+    yAxis(g, y, iw, yts, v=>Math.round(v*100)+'%', '');
+    xAxis(g, x, ih, [0,2,4,6,8,10], v=>v+'y');
+    const band = 'M'+P2.cuts.map((c,j)=>`${x(c)},${y(hi[j])}`).join(' L')
+      + ' L' + P2.cuts.slice().reverse().map((c,j)=>`${x(c)},${y(lo[K-1-j])}`).join(' L') + 'Z';
+    el('path', {d:band, fill:PAL.blue, opacity:.16}, g);
+    el('path', {d:'M'+P2.cuts.map((c,j)=>`${x(c)},${y(wd[j])}`).join(' L'), fill:'none', stroke:PAL.silver,
+      'stroke-width':2, 'stroke-dasharray':'4 3'}, g);
+    el('path', {d:'M'+P2.cuts.map((c,j)=>`${x(c)},${y(m[j])}`).join(' L'), fill:'none', stroke:PAL.blue, 'stroke-width':2.6}, g);
+    el('text', {x:x(9.9), y:y(m[K-1])-6, 'text-anchor':'end', class:'dir-lab', fill:PAL.blue}, g).textContent='operating';
+    el('text', {x:x(9.9), y:y(wd[K-1])+14, 'text-anchor':'end', class:'dir-lab', fill:PAL.mut}, g).textContent='withdrawn';
+    [3,5,7].forEach(h=>el('line',{x1:x(h),x2:x(h),y1:0,y2:ih,class:'grid-ln'},g));
+    const hit = el('rect', {x:0,y:0,width:iw,height:ih,fill:'transparent'}, g);
+    hit.addEventListener('mousemove', ev2 => { const r = hit.getBoundingClientRect();
+      const hv = Math.max(0.25, Math.min(10, x.inv((ev2.clientX-r.left)*(iw/r.width))));
+      showTT(`<div class="tt-t">${hv.toFixed(1)} years after request</div>
+        <div class="tt-r"><span>P(operating)</span><b>${pct(at(m,hv))}</b></div>
+        <div class="tt-r"><span>90% band</span><b>${pct(at(lo,hv))} to ${pct(at(hi,hv))}</b></div>
+        <div class="tt-r"><span>P(withdrawn)</span><b>${pct(at(wd,hv))}</b></div>`, ev2.clientX, ev2.clientY); });
+    hit.addEventListener('mouseleave', hideTT);
+    // regional comparison
+    const comp = P2.regions.map(r2 => ({r:r2, v:at(curve(M1,rowIdx[key(r2,tc,yr,sz)]),5)})).sort((a,b)=>b.v-a.v);
+    const s2 = scaffold('#ch-pl-compare', 520, 290, {l:86, t:10, r:56, b:26});
+    const xm = Math.max(0.25, comp[0].v*1.15);
+    const x2 = linScale(0, xm, 0, s2.iw);
+    comp.forEach((c2,i2) => { const y0 = i2*(s2.ih/comp.length)+6, bh = s2.ih/comp.length-9;
+      const mine = c2.r===rg;
+      el('rect', {x:0, y:y0, width:Math.max(1.5,x2(c2.v)), height:bh, fill:mine?PAL.blue:PAL.mist, rx:3}, s2.g);
+      el('text', {x:-8, y:y0+bh/2+4, 'text-anchor':'end', class:'axis-t',
+        style:mine?'font-weight:700':''}, s2.g).textContent = (mine?'▲ ':'')+c2.r;
+      el('text', {x:x2(c2.v)+5, y:y0+bh/2+4, class:'axis-l', fill:mine?PAL.blue:PAL.mut}, s2.g).textContent = pct(c2.v);
+    });
+    el('text', {x:0, y:s2.ih+18, class:'axis-l'}, s2.g).textContent = `${sz} ${tc}, entering ${yr}: P(operating by 5 yr)`;
+    // readout
+    const rank = comp.findIndex(c2=>c2.r===rg)+1;
+    const best = comp[0];
+    const odds = p5>0 ? Math.round(1/p5) : Infinity;
+    document.getElementById('pl-read').innerHTML =
+      `A <b>${sz.replace(' MW','')} MW ${tc.toLowerCase()}</b> project entering the <b>${rg}</b> queue in <b>${yr}</b> has a
+       <b>${pct(p5)}</b> predicted chance of operating within five years${p5>0&&odds<=100?` (about 1 in ${odds})`:''} and a
+       <b>${pct(w5)}</b> chance of having withdrawn. ${rg} ranks <b>#${rank} of 9</b> regions for this configuration${
+       rank>1?`; the strongest is <b>${best.r}</b> at ${pct(best.v)}`:''}.${
+       hist!=null?` Comparable projects entering 2010 to 2018 completed at ${pct(hist)} within five years.`:''}
+       ${p5<0.1?'At these odds the analysis points to parallel queue positions and to treating energization as the schedule driver.':'Even in a comparatively strong configuration, power procurement remains the longest and least controllable activity in the program.'}`;
+  }
+  [selR,selT,selY].forEach(s=>s.addEventListener('change',draw));
+  rng.addEventListener('input',draw);
+  draw();
+})();
+
+// table-view toggles
+document.querySelectorAll('.tbl-btn').forEach(b => b.addEventListener('click', () => {
+  const t = document.getElementById(b.dataset.tbl);
+  t.style.display = t.style.display==='table' ? 'none' : 'table';
+  b.textContent = t.style.display==='table' ? 'hide table' : 'table view';
+}));
+
+route();
+</script>
+
+<script>
+// ---------- interactive pipeline ----------
+(function(){
+  document.querySelectorAll('#p-pipeline [data-tip]').forEach(c => {
+    const go = () => { hideTT();
+      const h = '#' + c.dataset.link;
+      if (location.hash === h) route(); else location.hash = h; };
+    c.addEventListener('mousemove', ev => showTT(
+      `<div class="tt-t">${c.dataset.title}</div>` +
+      `<div style="color:var(--char)">${c.dataset.tip}</div>` +
+      (c.dataset.link ? `<div class="tt-r" style="margin-top:6px"><span>Click to open</span><b>${c.dataset.dest}</b></div>` : ''),
+      ev.clientX, ev.clientY));
+    c.addEventListener('mouseleave', hideTT);
+    if (c.dataset.link){
+      c.addEventListener('click', go);
+      c.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); });
+    }
+  });
+})();
+</script>
+</body>
+</html>
